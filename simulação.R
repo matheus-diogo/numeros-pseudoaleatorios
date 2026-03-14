@@ -1,0 +1,1 @@
+# Código da Simução de Geração de Números Pseudosaletórios

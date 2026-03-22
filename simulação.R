@@ -1,34 +1,33 @@
 # Método da Transformada Inversa ###############################################################
 
 ## Garantir reprodutibilidade
-
 set.seed(2026)
 
-## Gerar 30.000 números entre 0 e 1 com distribuição uniforme pelo método Mersenne-Twister
-U1 <- runif(30000); U2 <- runif(30000); U3 <- runif(30000); U4 <- runif(30000)
+## Gerar n números entre 0 e 1 com distribuição uniforme pelo método Mersenne-Twister
+n <- 30000; U1 <- runif(n); U2 <- runif(n); U3 <- runif(n); U4 <- runif(n)
 
-## Gerar 30.000 números a partir de uma distribuição pelo Método da Transformada Inverva
+## Gerar n números a partir de uma distribuição pelo Método da Transformada Inverva
 
 ### Para distribuição Logística
 mu <- 0; sigma <- 1; X1 <- qlogis(U1, mu, sigma)
 
 ### Para distribuição Exponencial
-lambda.exp <- 1; X2 <- qexp(U2, lambda.exp)
+lambda <- 1; X2 <- qexp(U2, lambda)
 
 ### Para distribuição de Weibull
-k <- 10; lambda.weibull <- 2; X3 <- qweibull(U3, k, lambda.weibull)
+eta <- 10; beta <- 2; X3 <- qweibull(U3, beta, eta)
 
 ### Para distribuição Uniforme
 a <- 5; b <- 10; X4 <- qunif(U4, a, b)
 
 # Validação dos Resultados #####################################################################
 
-### Histograma e Gráfico Q-Q ###################################################################
+## Histograma e Gráfico Q-Q ####################################################################
 
-#### Considere do todos os percentis no Gráfico Q-Q
+### Considere do todos os percentis no Gráfico Q-Q
 p <- seq(0.01,0.99,0.01)
 
-#### Para distribuiçao Logística
+### Para distribuiçao Logística
 hist(
   x = X1,
   ylim = c(0,dlogis(mu, mu, sigma)),
@@ -48,19 +47,19 @@ qqplot(
   col = "orange3"
 ); abline(0,1)
 
-#### Para distribuição Expoencial
+### Para distribuição Expoencial
 hist(
   x = X2,
-  ylim = c(0,lambda.exp),
+  ylim = c(0,lambda),
   probability = TRUE,
   main = "Distribuição de X2 e Curva Exponencial",
   xlab = "Números gerados",
   ylab = "Densidade",
   col = "orange",
   border = "orange4"
-); curve(dexp(x, lambda.exp), lwd = 2, add = TRUE)
+); curve(dexp(x, lambda), lwd = 2, add = TRUE)
 qqplot(
-  x = qexp(p, lambda.exp),
+  x = qexp(p, lambda),
   y = quantile(X2, probs = p),
   main = "Comparativo com Distribuição Exponencial",
   xlab = "Quantis teóricos",
@@ -68,7 +67,7 @@ qqplot(
   col = "orange3"
 ); abline(0,1)
 
-#### Para distribuição de Weibull
+### Para distribuição de Weibull
 hist(
   x = X3,
   probability = TRUE,
@@ -77,9 +76,9 @@ hist(
   ylab = "Densidade",
   col = "orange",
   border = "orange4"
-); curve(dweibull(x, k, lambda.weibull), lwd = 2, add = TRUE)
+); curve(dweibull(x, beta, eta), lwd = 2, add = TRUE)
 qqplot(
-  x = qweibull(p, k, lambda.weibull),
+  x = qweibull(p, beta, eta),
   y = quantile(X3, probs = p),
   main = "Comparativo com Distribuição de Weibull",
   xlab = "Quantis teóricos",
@@ -87,7 +86,7 @@ qqplot(
   col = "orange3"
 ); abline(0,1)
 
-#### Para distribuição Uniforme
+### Para distribuição Uniforme
 hist(
   x = X4,
   probability = TRUE,
@@ -106,13 +105,43 @@ qqplot(
   col = "orange3"
 ); abline(0,1)
 
-### Teste de Kolmogorov-Smirnov (KS) e Teste Anderson-Darling (AD) #############################
+## Média e Variância ###########################################################################
 
-#### Considere que a hipótese nula é que as funções de distribução acumulada das distribuições
-#### empíricas e teóricas são iguais e que o nível de significância é de 5%
+### Para distribuição Logística
+data.frame(
+ Tipo = c("Teórica","Amostra"),
+ Média = c(mu, mean(X1)),
+ Variância = c(sigma^2*pi^2/3, var(X1))
+)
+
+### Para distribuição Exponencial
+data.frame(
+  Tipo = c("Teórica","Amostra"),
+  Média = c(1/lambda, mean(X2)),
+  Variância = c(1/lambda^2, var(X2))
+)
+
+### Para distribuição de Weibull
+data.frame(
+  Tipo = c("Teórica","Amostra"),
+  Média = c(eta*gamma(1+1/beta), mean(X3)),
+  Variância = c((eta^2)*(gamma(1+2/beta)-gamma(1+1/beta)^2), var(X3))
+)
+
+### Para distribuição Uniforme
+data.frame(
+  Tipo = c("Teórica","Amostra"),
+  Média = c((a+b)/2, mean(X4)),
+  Variância = c(((b-a)^2)/12, var(X4))
+)
+
+## Teste de Kolmogorov-Smirnov (KS) e Teste Anderson-Darling (AD) ##############################
+
+### Considere que a hipótese nula é que as funções de distribução acumulada das distribuições
+### empíricas e teóricas são iguais e que o nível de significância é de 5%
 alpha <- 0.05
 
-#### Definir função para teste de KS e AD
+### Definir função para teste de KS e AD
 library(goftest); library(magrittr)
 teste.ks.ad <- function(amostra, teórica, ...) {
   p.valor.ks <- ks.test(amostra, teórica, ...) %>% .$p.value
@@ -125,17 +154,16 @@ teste.ks.ad <- function(amostra, teórica, ...) {
   ))
 }
 
-#### Para distribuição Logística
+### Para distribuição Logística
 teste.ks.ad(X1, "plogis", mu, sigma)
 
-#### Para distribuição Exponencial
-teste.ks.ad(X2, "pexp", lambda.exp)
+### Para distribuição Exponencial
+teste.ks.ad(X2, "pexp", lambda)
 
-#### Para distribuição de Weibull
-teste.ks.ad(X3, "pweibull", k, lambda.weibull)
+### Para distribuição de Weibull
+teste.ks.ad(X3, "pweibull", beta, eta)
 
-#### Para distribuição Uniforme
+### Para distribuição Uniforme
 teste.ks.ad(X4, "punif", a, b)
 
-# Comparação com o Método de Aceitação-Rejeição ################################################
 

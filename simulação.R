@@ -165,5 +165,3 @@ teste.ks.ad(X3, "pweibull", beta, eta)
 
 ### Para distribuição Uniforme
 teste.ks.ad(X4, "punif", a, b)
-
-

@@ -15,7 +15,7 @@ mu <- 0; sigma <- 1; X1 <- qlogis(U1, mu, sigma)
 lambda <- 1; X2 <- qexp(U2, lambda)
 
 ### Para distribuição de Weibull
-eta <- 10; beta <- 2; X3 <- qweibull(U3, beta, eta)
+beta <- 2; eta <- 10; X3 <- qweibull(U3, beta, eta)
 
 ### Para distribuição Uniforme
 a <- 5; b <- 10; X4 <- qunif(U4, a, b)
